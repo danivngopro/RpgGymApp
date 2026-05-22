@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Difficulty {
+  beginner
+  intermediate
+  advanced
+}
+
+enum FriendRequestStatus {
+  pending
+  accepted
+  rejected
+}
+
+enum WorkoutStatus {
+  active
+  completed
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  username       String   @unique
+  passwordHash   String?
+  googleId       String?  @unique
+  avatarUrl      String?
+  level          Int      @default(1)
+  totalExp       Int      @default(0)
+  currentStreak  Int      @default(0)
+  title          String   @default("Novice")
+  statStrength   Int      @default(0)
+  statEndurance  Int      @default(0)
+  statDiscipline Int      @default(0)
+  statConsistency Int     @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  routines       Routine[]
+  workoutSessions WorkoutSession[]
+  sentFriendRequests FriendRequest[] @relation("FriendRequestSender")
+  receivedFriendRequests FriendRequest[] @relation("FriendRequestReceiver")
+}
+
+model Exercise {
+  id           String     @id @default(cuid())
+  name         String     @unique
+  muscleGroups String[]
+  equipment    String
+  difficulty   Difficulty
+  instructions String
+  mediaUrl     String?
+  createdAt    DateTime   @default(now())
+  routineExercises RoutineExercise[]
+}
+
+model Routine {
+  id                       String   @id @default(cuid())
+  userId                   String
+  name                     String
+  description              String?
+  targetMuscleGroups       String[]
+  estimatedDurationMinutes Int
+  weeklySchedule           String[]
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercises RoutineExercise[]
+  sessions  WorkoutSession[]
+}
+
+model RoutineExercise {
+  id              String  @id @default(cuid())
+  routineId       String
+  exerciseId      String
+  order           Int
+  sets            Int
+  reps            Int?
+  weightKg        Float?
+  durationSeconds Int?
+  restSeconds     Int
+  notes           String?
+
+  routine Routine @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id])
+  completedExercises CompletedExercise[]
+
+  @@unique([routineId, order])
+}
+
+model WorkoutSession {
+  id          String        @id @default(cuid())
+  userId      String
+  routineId   String
+  status      WorkoutStatus @default(active)
+  expAwarded  Int           @default(0)
+  startedAt   DateTime      @default(now())
+  completedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routine Routine @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  completedExercises CompletedExercise[]
+}
+
+model CompletedExercise {
+  id                String @id @default(cuid())
+  workoutSessionId  String
+  routineExerciseId String
+  sets              Int
+  reps              Int?
+  weightKg          Float?
+  durationSeconds   Int?
+  notes             String?
+  baseExp           Int
+  targetMet         Boolean
+  awardedExp        Int
+
+  workoutSession WorkoutSession @relation(fields: [workoutSessionId], references: [id], onDelete: Cascade)
+  routineExercise RoutineExercise @relation(fields: [routineExerciseId], references: [id])
+}
+
+model FriendRequest {
+  id         String              @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     FriendRequestStatus @default(pending)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  sender   User @relation("FriendRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("FriendRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+}

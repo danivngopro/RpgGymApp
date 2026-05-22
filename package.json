@@ -1,0 +1,21 @@
+{
+  "name": "rpg-gym-app",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @rpg-gym/api",
+    "dev:web": "npm run dev -w @rpg-gym/web",
+    "build": "npm run build -ws",
+    "test": "npm run test -w @rpg-gym/api",
+    "lint": "npm run lint -ws",
+    "db:migrate": "npm run db:migrate -w @rpg-gym/api",
+    "db:seed": "npm run db:seed -w @rpg-gym/api"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
