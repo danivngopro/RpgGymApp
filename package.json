@@ -1,0 +1,24 @@
+{
+  "name": "gym-rpg-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RPG-style fitness and gym tracker monorepo.",
+  "workspaces": [
+    "packages/shared",
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "dev:api": "npm run build --workspace @gymrpg/shared && npm run dev --workspace @gymrpg/api",
+    "dev:web": "npm run build --workspace @gymrpg/shared && npm run dev --workspace @gymrpg/web",
+    "docker:up": "docker compose up -d postgres",
+    "docker:config": "docker compose config"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
