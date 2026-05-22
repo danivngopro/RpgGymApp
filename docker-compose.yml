@@ -3,15 +3,15 @@ services:
     image: postgres:16-alpine
     container_name: gymrpg-postgres
     environment:
-      POSTGRES_DB: gymrpg_dev
-      POSTGRES_USER: gymrpg
-      POSTGRES_PASSWORD: gymrpg_password
+      POSTGRES_DB: rpg_gym
+      POSTGRES_USER: rpg_gym
+      POSTGRES_PASSWORD: rpg_gym
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gymrpg -d gymrpg_dev"]
+      test: ["CMD-SHELL", "pg_isready -U rpg_gym -d rpg_gym"]
       interval: 10s
       timeout: 5s
       retries: 5

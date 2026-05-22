@@ -15,6 +15,9 @@
     "lint": "npm run lint --workspaces --if-present",
     "dev:api": "npm run build --workspace @gymrpg/shared && npm run dev --workspace @gymrpg/api",
     "dev:web": "npm run build --workspace @gymrpg/shared && npm run dev --workspace @gymrpg/web",
+    "prisma:generate": "npm run prisma:generate --workspace @gymrpg/api",
+    "prisma:migrate": "npm run prisma:migrate --workspace @gymrpg/api",
+    "prisma:validate": "npm run prisma:validate --workspace @gymrpg/api",
     "docker:up": "docker compose up -d postgres",
     "docker:config": "docker compose config"
   },

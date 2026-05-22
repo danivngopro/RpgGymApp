@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, Route, Routes } from 'react-router-dom';
 import { APP_NAME, type HealthResponse } from '@gymrpg/shared';
+import { ProtectedRoute } from './auth/ProtectedRoute';
 import { apiBaseUrl, fetchHealth } from './lib/api';
+import { DashboardPage } from './pages/DashboardPage';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 
 type ConnectionState = 'checking' | 'connected' | 'disconnected';
 
@@ -106,6 +110,20 @@ function HomePage() {
             >
               {connectionState === 'checking' ? 'Checking...' : 'Retry health check'}
             </button>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <Link
+                className="rounded-md border border-slate-700 px-4 py-3 text-center text-sm font-semibold text-slate-200 transition hover:border-orange-300 hover:text-orange-200"
+                to="/login"
+              >
+                Log in
+              </Link>
+              <Link
+                className="rounded-md border border-slate-700 px-4 py-3 text-center text-sm font-semibold text-slate-200 transition hover:border-orange-300 hover:text-orange-200"
+                to="/register"
+              >
+                Register
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -117,6 +135,11 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<DashboardPage />} />
+      </Route>
       <Route
         path="*"
         element={

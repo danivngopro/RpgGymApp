@@ -1,6 +1,7 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { ZodError } from 'zod';
 import { logger } from '../config/logger.js';
+import { ApiError } from './api-error.js';
 
 export const notFoundHandler: RequestHandler = (req, res) => {
   res.status(404).json({
@@ -11,6 +12,15 @@ export const notFoundHandler: RequestHandler = (req, res) => {
 };
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  if (err instanceof ApiError) {
+    res.status(err.statusCode).json({
+      error: {
+        message: err.message
+      }
+    });
+    return;
+  }
+
   if (err instanceof ZodError) {
     res.status(400).json({
       error: {
