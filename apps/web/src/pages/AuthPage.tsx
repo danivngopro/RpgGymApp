@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { Navigate } from "react-router-dom";
 import { loginSchema, registerSchema } from "@rpg-gym/shared";
 import { useAuth } from "../lib/AuthContext";
+import { API_URL } from "../lib/api";
 
 export function AuthPage() {
   const { user, login, register } = useAuth();
@@ -68,7 +69,7 @@ export function AuthPage() {
           </div>
           {error && <p className="mt-4 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
           <button className="btn-primary mt-6 w-full" type="submit">{mode === "login" ? "Login" : "Register"}</button>
-          <a className="btn-secondary mt-3 w-full" href="/api/auth/google">Continue with Google</a>
+          <a className="btn-secondary mt-3 w-full" href={`${API_URL}/auth/google`}>Continue with Google</a>
           <button className="mt-4 text-sm font-semibold text-arena-amber" type="button" onClick={() => setMode(mode === "login" ? "register" : "login")}>
             {mode === "login" ? "Need an account?" : "Already have an account?"}
           </button>

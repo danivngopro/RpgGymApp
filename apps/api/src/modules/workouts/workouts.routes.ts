@@ -46,3 +46,24 @@ workoutRouter.get("/history", async (req, res, next) => {
     next(error);
   }
 });
+
+workoutRouter.get("/:id", async (req, res, next) => {
+  try {
+    const workout = await prisma.workoutSession.findFirstOrThrow({
+      where: { id: req.params.id, userId: req.authUser!.id },
+      include: {
+        routine: {
+          include: {
+            exercises: {
+              include: { exercise: true },
+              orderBy: { order: "asc" }
+            }
+          }
+        }
+      }
+    });
+    res.json({ workout });
+  } catch (error) {
+    next(error);
+  }
+});

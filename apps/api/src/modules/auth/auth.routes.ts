@@ -8,6 +8,7 @@ import { requireAuth } from "../../middleware/auth.js";
 import { validateBody } from "../../middleware/validate.js";
 import { AppError } from "../../middleware/errors.js";
 import { publicUser } from "../users/users.presenter.js";
+import { config } from "../../config.js";
 
 export const authRouter = Router();
 
@@ -55,5 +56,5 @@ authRouter.get("/google", passport.authenticate("google", { scope: ["profile", "
 authRouter.get("/google/callback", passport.authenticate("google", { session: false }), (req, res) => {
   const user = req.user as { id: string; email: string };
   const token = signAuthToken({ sub: user.id, email: user.email });
-  res.redirect(`/auth/callback?token=${encodeURIComponent(token)}`);
+  res.redirect(`${config.FRONTEND_URL}/auth/callback?token=${encodeURIComponent(token)}`);
 });

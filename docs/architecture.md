@@ -9,7 +9,9 @@ The MVP uses a modular monolith in a monorepo:
 - `packages/shared`: Zod schemas, progression constants, shared TypeScript types.
 - `nginx`: local reverse proxy routing `/api` to the backend and all other paths to the frontend.
 
-This is microservices-ready without paying microservice costs early. Each backend domain is isolated under `src/modules/*` with route, service, and validation boundaries. If the product grows, modules like workouts, leaderboard, or friends can be extracted behind the same HTTP contracts.
+This is a modular monolith, not a microservices system. That is the correct MVP choice because auth, routines, workouts, progression, friends, and leaderboards all share one relational data model and need fast transactional consistency. Splitting now would add deployment, network, observability, and data-consistency costs before the product has proven scale pressure.
+
+The code is still microservices-ready in structure: each backend domain is isolated under `src/modules/*` with route, service, and validation boundaries. If the product grows, modules like workouts, leaderboard, or friends can be extracted later behind the same HTTP contracts.
 
 ## ORM Choice
 

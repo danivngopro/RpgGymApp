@@ -4,34 +4,40 @@ import { AppError } from "../../middleware/errors.js";
 import type { CompleteWorkoutInput } from "@rpg-gym/shared";
 
 export async function completeWorkout(userId: string, workoutId: string, input: CompleteWorkoutInput) {
-  const session = await prisma.workoutSession.findFirst({
-    where: { id: workoutId, userId, status: "active" },
-    include: {
-      routine: { include: { exercises: true } }
-    }
-  });
-  if (!session) throw new AppError(404, "Active workout session not found");
-
-  const targetsById = new Map(session.routine.exercises.map((exercise) => [exercise.id, exercise]));
-  const completedIds = new Set(input.exercises.map((exercise) => exercise.routineExerciseId));
-  const routineCompleted = session.routine.exercises.every((exercise) => completedIds.has(exercise.id));
-
-  const results = input.exercises.map((completed) => {
-    const target = targetsById.get(completed.routineExerciseId);
-    if (!target) throw new AppError(400, "Completed exercise does not belong to this routine");
-    return {
-      completed,
-      exp: calculateExerciseExp(
-        { sets: target.sets, reps: target.reps, durationSeconds: target.durationSeconds },
-        completed
-      )
-    };
-  });
-
-  const exerciseExp = results.reduce((sum, result) => sum + result.exp.awardedExp, 0);
-  const totalAwardedExp = applyRoutineCompletionBonus(exerciseExp, routineCompleted);
-
   return prisma.$transaction(async (tx) => {
+    const session = await tx.workoutSession.findFirst({
+      where: { id: workoutId, userId },
+      include: {
+        routine: { include: { exercises: true } }
+      }
+    });
+    if (!session) throw new AppError(404, "Workout session not found");
+    if (session.status === "completed") throw new AppError(409, "Workout already completed");
+
+    const claimed = await tx.workoutSession.updateMany({
+      where: { id: workoutId, userId, status: "active" },
+      data: { status: "completed", completedAt: new Date() }
+    });
+    if (claimed.count !== 1) throw new AppError(409, "Workout already completed");
+
+    const targetsById = new Map(session.routine.exercises.map((exercise) => [exercise.id, exercise]));
+    const completedIds = new Set(input.exercises.map((exercise) => exercise.routineExerciseId));
+    const routineCompleted = session.routine.exercises.every((exercise) => completedIds.has(exercise.id));
+
+    const results = input.exercises.map((completed) => {
+      const target = targetsById.get(completed.routineExerciseId);
+      if (!target) throw new AppError(400, "Completed exercise does not belong to this routine");
+      return {
+        completed,
+        exp: calculateExerciseExp(
+          { sets: target.sets, reps: target.reps, durationSeconds: target.durationSeconds },
+          completed
+        )
+      };
+    });
+
+    const exerciseExp = results.reduce((sum, result) => sum + result.exp.awardedExp, 0);
+    const totalAwardedExp = applyRoutineCompletionBonus(exerciseExp, routineCompleted);
     const userBefore = await tx.user.findUniqueOrThrow({ where: { id: userId } });
     const beforeLevel = userBefore.level;
     const nextTotalExp = userBefore.totalExp + totalAwardedExp;
@@ -56,7 +62,7 @@ export async function completeWorkout(userId: string, workoutId: string, input: 
 
     await tx.workoutSession.update({
       where: { id: session.id },
-      data: { status: "completed", completedAt: new Date(), expAwarded: totalAwardedExp }
+      data: { expAwarded: totalAwardedExp }
     });
 
     const user = await tx.user.update({

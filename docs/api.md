@@ -30,6 +30,7 @@ Routine exercise payload fields include `exerciseId`, `order`, `sets`, `reps`, `
 ## Workouts
 
 - `POST /workouts/start` `{ routineId }`
+- `GET /workouts/:id`
 - `POST /workouts/:id/complete` `{ exercises: [...] }`
 - `GET /workouts/history`
 

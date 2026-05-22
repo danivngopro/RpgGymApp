@@ -21,20 +21,19 @@ export function ActiveWorkoutPage() {
   const navigate = useNavigate();
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    void api<{ workouts: Workout[] }>("/workouts/history");
-    const cached = sessionStorage.getItem(`workout:${id}`);
-    if (cached) setWorkout(JSON.parse(cached));
+    if (!id) return;
+    setError("");
+    void api<{ workout: Workout }>(`/workouts/${id}`)
+      .then((data) => setWorkout(data.workout))
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Unable to load workout");
+        const cached = sessionStorage.getItem("lastStartedWorkout");
+        if (cached) setWorkout(JSON.parse(cached));
+      });
   }, [id]);
-
-  useEffect(() => {
-    if (!workout && id) {
-      // The start endpoint returns the full workout before navigation; preserve it for the active page.
-      const last = sessionStorage.getItem("lastStartedWorkout");
-      if (last) setWorkout(JSON.parse(last));
-    }
-  }, [workout, id]);
 
   async function finishWorkout() {
     if (!workout || !id) return;
@@ -47,16 +46,21 @@ export function ActiveWorkoutPage() {
         weightKg: exercise.weightKg,
         durationSeconds: exercise.durationSeconds
       }));
-    const result = await api<CompletionResult>(`/workouts/${id}/complete`, { method: "POST", body: JSON.stringify({ exercises }) });
-    sessionStorage.setItem("lastWorkoutSummary", JSON.stringify(result));
-    navigate("/workout-summary");
+    try {
+      const result = await api<CompletionResult>(`/workouts/${id}/complete`, { method: "POST", body: JSON.stringify({ exercises }) });
+      sessionStorage.setItem("lastWorkoutSummary", JSON.stringify(result));
+      navigate("/workout-summary");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to complete workout");
+    }
   }
 
   if (!workout) {
     return (
       <div className="panel max-w-xl p-6">
         <h2 className="font-display text-4xl font-bold">Workout session opened</h2>
-        <p className="mt-2 text-arena-muted">If you landed here from a refresh, return to the routine and start again. Active workout hydration is scaffolded for the MVP.</p>
+        <p className="mt-2 text-arena-muted">Unable to load this workout from the API. Verify the API is running and that this workout belongs to your logged-in user.</p>
+        {error && <p className="mt-4 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
       </div>
     );
   }
@@ -68,6 +72,7 @@ export function ActiveWorkoutPage() {
       <section className="panel p-6">
         <h2 className="font-display text-5xl font-bold">{workout.routine.name}</h2>
         <p className="text-arena-muted">{doneCount} / {workout.routine.exercises.length} exercises completed</p>
+        {error && <p className="mt-4 rounded-md border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
       </section>
       {workout.routine.exercises.map((exercise) => (
         <button

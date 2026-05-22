@@ -5,4 +5,5 @@ dist
 !.env.example
 coverage
 *.log
+api-dev.err
 apps/api/prisma/dev.db

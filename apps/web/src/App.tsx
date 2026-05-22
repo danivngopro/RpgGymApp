@@ -11,6 +11,7 @@ import { ActiveWorkoutPage } from "./pages/ActiveWorkoutPage";
 import { WorkoutSummaryPage } from "./pages/WorkoutSummaryPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { FriendsPage } from "./pages/FriendsPage";
+import { AuthCallbackPage } from "./pages/AuthCallbackPage";
 
 function Protected() {
   const { user, loading } = useAuth();
@@ -24,6 +25,7 @@ export function App() {
     <AuthProvider>
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route element={<Protected />}>
           <Route index element={<DashboardPage />} />
           <Route path="/exercises" element={<ExerciseCatalogPage />} />
